@@ -207,7 +207,7 @@ describe('res', function(){
         setImmediate(function () {
           res.sendFile(path.resolve(fixtures, 'name.txt'), function (err) {
             should(err).be.ok;
-            err.code.should.equal('ECONNABORT');
+            err.code.should.equal('ECONNABORTED');
             cb();
           });
         });
@@ -226,7 +226,7 @@ describe('res', function(){
         onFinished(res, function () {
           res.sendFile(path.resolve(fixtures, 'name.txt'), function (err) {
             should(err).be.ok;
-            err.code.should.equal('ECONNABORT');
+            err.code.should.equal('ECONNABORTED');
             cb();
           });
         });
@@ -323,7 +323,7 @@ describe('res', function(){
         setImmediate(function () {
           res.sendfile('test/fixtures/name.txt', function (err) {
             should(err).be.ok;
-            err.code.should.equal('ECONNABORT');
+            err.code.should.equal('ECONNABORTED');
             cb();
           });
         });
@@ -342,7 +342,7 @@ describe('res', function(){
         onFinished(res, function () {
           res.sendfile('test/fixtures/name.txt', function (err) {
             should(err).be.ok;
-            err.code.should.equal('ECONNABORT');
+            err.code.should.equal('ECONNABORTED');
             cb();
           });
         });
@@ -388,12 +388,12 @@ describe('res', function(){
     });
 
     it('should invoke the callback on 404', function(done){
-      var app = express()
-        , calls = 0;
+      var app = express();
+      var calls = 0;
 
       app.use(function(req, res){
         res.sendfile('test/fixtures/nope.html', function(err){
-          ++calls;
+          assert.equal(calls++, 0);
           assert(!res.headersSent);
           res.send(err.message);
         });
@@ -401,12 +401,7 @@ describe('res', function(){
 
       request(app)
       .get('/')
-      .end(function(err, res){
-        assert(1 == calls, 'called too many times');
-        res.text.should.startWith("ENOENT, stat");
-        res.statusCode.should.equal(200);
-        done();
-      });
+      .expect(200, /^ENOENT.*?, stat/, done);
     })
 
     it('should not override manual content-types', function(done){
